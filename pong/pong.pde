@@ -1,16 +1,22 @@
-int x_ball, y_ball, x_direction, y_direction, x_plateau, y_plateau;
+import com.onformative.leap.*;
+import com.leapmotion.leap.*;
+import java.util.*;
+int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
 boolean pauze, continueGame;
 int score, score2;
 int lives, mode, bonus;
+PImage img;
+LeapMotionP5 leap;
  
 void setup()
 {
-    size(500,500);
+    size(800,500);
     background(255);
+    leap = new LeapMotionP5(this);
 
-    //position of plateau
-    x_plateau = 60;
-    y_plateau = height-15;
+    //position of paddle
+    x_paddle = 60;
+    y_paddle = height-15;
    
     //direction of ball
     x_direction = -3;
@@ -25,12 +31,14 @@ void setup()
     score2 = 0;
    
     //mode keyboard, mouse, leap motion
-    mode = 0;
+    mode = 3;
 
     //# lives
     lives = 3;
    
     bonus = 0;
+
+    img = loadImage("images/heart.png");
    
     //gameover == continueGame = false
     continueGame = true;
@@ -41,18 +49,22 @@ void setup()
  
 void draw()
 {
-	background(255);
-  	if (continueGame==true) {
-    	//ChooseMode();
-    	play(2);
-  	}
-  	if (continueGame==false) {
-  		stats();
-    	text("Press mouse to continue", width/2 + 50, height/2);
-    	if(mousePressed) {
-      		reset();
-    	}
-  	}
+	if (pauze) {
+		//doe niets
+	}else{
+	background(200);
+  	    if (continueGame==true) {
+        	//ChooseMode();
+        	play(1);
+  	    }
+  	    if (continueGame==false) {
+  	    	stats();
+        	text("Press mouse to continue", width/2 + 50, height/2);
+        	if(mousePressed) {
+          		reset();
+        	}
+  	    }
+    }
 }
  
  
@@ -91,11 +103,10 @@ void ChooseMode() {
 void drawContent()
 {
     smooth();
-    fill(228,27,241);
-    stroke(228,27,241);
+    fill(13,51,102);
  
  	//draw the plateau
-    rect(x_plateau,y_plateau,80,5);
+    rect(x_paddle,y_paddle,80,5);
  
  	//draw the ball
     ellipse(x_ball,y_ball,10,10);
@@ -104,31 +115,34 @@ void drawContent()
 void moveWithKeyboard()
 {
     if(keyPressed) {
-        if(keyCode == LEFT && x_plateau > 0) {
-            x_plateau -= 5;
+        if(keyCode == LEFT && x_paddle > 0) {
+            x_paddle -= 5;
         }
    
-        if(keyCode == RIGHT && x_plateau < (width - 80)) {
-            x_plateau+= 5;
+        if(keyCode == RIGHT && x_paddle < (width - 80)) {
+            x_paddle+= 5;
         }
     }
 }
  
 void moveWithMouse()
 {  
-    x_plateau = mouseX - 40;
+    x_paddle = mouseX - 40;
    
-    if(x_plateau < 0) {
-        x_plateau = 0;
+    if(x_paddle < 0) {
+        x_paddle = 0;
     }
    
-    if(x_plateau > (width - 80)) {
-        x_plateau = (width - 80);
+    if(x_paddle > (width - 80)) {
+        x_paddle = (width - 80);
     }
 }
 
 void moveWithLeapMotion(){
 	//leap motion blablabla
+	PVector vingerPos = leap.getTip(leap.getFinger(0));
+	x_paddle = (int)vingerPos.x - 40;
+	println(x_paddle);
 }
  
  
@@ -146,14 +160,14 @@ void bounceBall()
         x_direction = -x_direction;
     }
     //bounce on plateau
-    if (y_ball>(y_plateau-5) && x_ball > x_plateau && x_ball<(x_plateau+85))
+    if (y_ball>(y_paddle-5) && x_ball > x_paddle && x_ball<(x_paddle+85))
     {
         y_direction = -y_direction;
         score++;
         bonus++;
     }
     // bounce floor
-    if (y_ball>(y_plateau+10) && x_ball > x_plateau && x_ball<(x_plateau+85))
+    if (y_ball>(y_paddle+10) && x_ball > x_paddle && x_ball<(x_paddle+85))
     {
         y_direction = -y_direction;
         score++;
@@ -215,31 +229,30 @@ void play(int mode)
 }
  
 void stats() {
-	//blauw
-    stroke(0,128,255);
-    line(0,40,width,40);
-    text("Bonus :  ",50,20);
-    text(bonus,110,20);
-    text("PONG", 175,20);
-    text("Score : ", 160, 35);
-    text(score, 225, 35);
-    text("Lives : ", 300,20);
-    text(lives,350,20);
+	//white rect
+    fill(255);
+    noStroke();
+    rect(0,0,width, 35);
+    fill(13,51,102);
+    textAlign(LEFT);
+    text("Bonus :  ",50,25);
+    text(bonus,110,25);
+    textAlign(CENTER);
+    textSize(30);
+    text(score, width/2, 30);
+    textSize(20);
+    //toon hartjes ipv getal
+    for (int i = 0; i < lives; i++) {
+    	image(img, (width - 30 - 30*i), 10, 20, 20);
+    }
 }
  
 void keyPressed()
 {
 	//pauze
-    if(keyCode == ENTER && continueGame == true && mode != 0)
+    if(keyCode == 32 && continueGame == true && mode != 0)
     {
         pauze = !pauze;
-        if (pauze) {
-            text("PAUSE", 150,200);
-            noLoop();
-        }
-        else {
-            loop();
-        }
     }  
 }
 
