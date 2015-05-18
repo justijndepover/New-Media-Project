@@ -2,6 +2,8 @@ import com.onformative.leap.*;
 import com.leapmotion.leap.*;
 import com.leapmotion.leap.Gesture.Type;
 import java.util.*;
+import controlP5.*;
+
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
 boolean pauze, gameOver;
 int score, score2;
@@ -9,13 +11,64 @@ int lives, mode, bonus;
 PImage img;
 PImage bg;
 LeapMotionP5 leap;
+ControlP5 cp5;
  
 void setup()
 {
     size(800,500);
     background(255);
+    PFont pong = createFont("Arial", 20);
     leap = new LeapMotionP5(this);
     leap.enableGesture(Type.TYPE_SCREEN_TAP);
+    cp5 = new ControlP5(this);
+
+    cp5.setColorBackground(color(255,255,255));
+
+
+    cp5.addButton("KeyboardPress")
+     .setValue(0)
+     .setCaptionLabel("Keyboard")
+     .setPosition(width/2 - 100,150)
+     .setSize(200,40)
+     .setVisible(false)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
+     cp5.addButton("MousePress")
+     .setValue(0) 
+     .setCaptionLabel("Mouse")
+     .setPosition(width/2 - 100,225)
+     .setSize(200,40)
+     .setVisible(false)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
+     cp5.addButton("LeapPress")
+     .setValue(0)
+     .setCaptionLabel("Leap Motion")
+     .setPosition(width/2 - 100,300)
+     .setSize(200,40)
+     .setVisible(false)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
+     cp5.getController("KeyboardPress")
+     .getCaptionLabel()
+     .setFont(createFont("Arial", 15))
+     .setColor(0)
+     ;
+
+     cp5.getController("MousePress")
+     .getCaptionLabel()
+     .setFont(createFont("Arial", 15))
+     .setColor(0)
+     ;
+
+     cp5.getController("LeapPress")
+     .getCaptionLabel()
+     .setFont(createFont("Arial", 15))
+     .setColor(0)
+     ;
 
     //position of paddle
     x_paddle = 60;
@@ -34,7 +87,7 @@ void setup()
     score2 = 0;
    
     //mode keyboard, mouse, leap motion
-    mode = 1;
+    mode = 0;
 
     //# lives
     lives = 3;
@@ -44,10 +97,7 @@ void setup()
     img = loadImage("images/heart.png");
     bg = loadImage("images/bg.jpg");
    
-    gameOver = true;
-   
-    PFont pong = createFont("Arial", 20);
-
+    gameOver = false;
 }
  
 void draw()
@@ -60,6 +110,9 @@ void draw()
 	    if (pauze) {
 	    	//toon controls
 	    }else{
+            cp5.getController("KeyboardPress").setVisible(false);
+            cp5.getController("MousePress").setVisible(false);
+            cp5.getController("LeapPress").setVisible(false);
   	        if (gameOver==false) {
              	play(mode);
   	        }
@@ -79,7 +132,13 @@ void draw()
 }
 
 void changeMode(){
-
+    fill(255);
+    textAlign(CENTER);
+    textSize(30);
+    text("Please select Game Mode", width/2, 100);
+    cp5.getController("KeyboardPress").setVisible(true);
+    cp5.getController("MousePress").setVisible(true);
+    cp5.getController("LeapPress").setVisible(true);
 }
  
  
@@ -256,8 +315,9 @@ void stats() {
     rect(0,0,width, 35);
     fill(13,51,102);
     textAlign(LEFT);
+    textSize(20);
     text("Combo :  ",10,25);
-    text(bonus,90,25);
+    text(bonus,95,25);
     textAlign(CENTER);
     textSize(30);
     text(score, width/2, 30);
@@ -284,3 +344,14 @@ void screenTapGestureRecognized(ScreenTapGesture gesture){
     } 
 }
 
+public void KeyboardPress(int theValue) {
+    mode = 2;
+}
+
+public void MousePress(int theValue) {
+    mode = 3;
+}
+
+public void LeapPress(int theValue) {
+    mode = 1;
+}
