@@ -3,15 +3,19 @@ import com.leapmotion.leap.*;
 import com.leapmotion.leap.Gesture.Type;
 import java.util.*;
 import controlP5.*;
+import http.requests.*;
 
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
 boolean pauze, gameOver;
 int score;
 int lives, mode, combo;
+String name;
 PImage img;
 PImage bg;
+JSONArray json;
 LeapMotionP5 leap;
 ControlP5 cp5;
+ListBox l;
  
 void setup()
 {
@@ -98,6 +102,25 @@ void setup()
      .setColor(0)
      ;
 
+    ControlP5.printPublicMethodsFor(ListBox.class);
+
+    l = cp5.addListBox("myList")
+           .setPosition(width/2 - 100,230)
+           .setVisible(false)
+           .setSize(120, 120)
+           .setItemHeight(15)
+           .setBarHeight(15)
+           .setColorForeground(color(255, 100,0))
+           ;
+  
+    l.captionLabel().toUpperCase(true);
+    l.captionLabel().align(ControlP5.CENTER, ControlP5.CENTER);
+    l.captionLabel().setFont(createFont("Arial", 15));
+    l.captionLabel().set("Topscores");
+    l.captionLabel().style().marginTop = 3;
+    l.valueLabel().style().marginTop = 3;
+
+
     //position of paddle
     x_paddle = 60;
     y_paddle = height-115;
@@ -136,7 +159,14 @@ void draw()
     if (mode == 0) {
         stats();
         changeMode();
-    }else{
+    }else if (mode == 4)
+    {
+      
+            cp5.getController("Settings").setVisible(false);
+            cp5.getController("Highscore").setVisible(false);
+            l.setVisible(true);
+    }
+    else{
 	    if (pauze) {
 	    	//toon controls
             stats();
@@ -156,6 +186,9 @@ void draw()
              	text("Game Over", width/2, height/2);
                 textSize(20);
                 text("Press mouse to continue!", width/2, height/2 + 40);
+                if(score!=0){
+                  PostScore();
+                }
              	if(mousePressed) {
                		reset();
              	}
@@ -369,4 +402,26 @@ public void LeapPress(int theValue) {
 public void Settings(int theValue) {
     mode = 0;
     pauze = !pauze;
+    println(pauze);
+}
+public void Highscore(int theValue) {
+    mode = 4;
+    println(pauze);
+    json = loadJSONArray("http://student.howest.be/arn.vanhoutte/newmedia/get.php");
+    for (int i = 0; i < json.size(); i++) {
+    
+    JSONObject item = json.getJSONObject(i); 
+
+    String name = item.getString("Name");
+    Integer score = item.getInt("Score");
+    ListBoxItem lbi = l.addItem(name + " " + score, i);
+  }
+}
+void PostScore(){
+    GetRequest get = new GetRequest("http://student.howest.be/arn.vanhoutte/newmedia/post.php?name=" + name + "&score=" + score);
+    get.send();
+          
+    
+  } catch( Exception e ) { e.printStackTrace(); }
+
 }
