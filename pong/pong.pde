@@ -6,8 +6,8 @@ import controlP5.*;
 
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
 boolean pauze, gameOver;
-int score, score2;
-int lives, mode, bonus;
+int score;
+int lives, mode, combo;
 PImage img;
 PImage bg;
 LeapMotionP5 leap;
@@ -37,7 +37,7 @@ void setup()
      cp5.addButton("MousePress")
      .setValue(0) 
      .setCaptionLabel("Mouse")
-     .setPosition(width/2 - 100,225)
+     .setPosition(width/2 - 100,230)
      .setSize(200,40)
      .setVisible(false)
      .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
@@ -46,7 +46,23 @@ void setup()
      cp5.addButton("LeapPress")
      .setValue(0)
      .setCaptionLabel("Leap Motion")
-     .setPosition(width/2 - 100,300)
+     .setPosition(width/2 - 100,310)
+     .setSize(200,40)
+     .setVisible(false)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
+     cp5.addButton("Settings")
+     .setValue(0) 
+     .setPosition(width/2 - 100,180)
+     .setSize(200,40)
+     .setVisible(false)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
+     cp5.addButton("Highscore")
+     .setValue(0) 
+     .setPosition(width/2 - 100,260)
      .setSize(200,40)
      .setVisible(false)
      .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
@@ -70,9 +86,21 @@ void setup()
      .setColor(0)
      ;
 
+     cp5.getController("Settings")
+     .getCaptionLabel()
+     .setFont(createFont("Arial", 15))
+     .setColor(0)
+     ;
+
+     cp5.getController("Highscore")
+     .getCaptionLabel()
+     .setFont(createFont("Arial", 15))
+     .setColor(0)
+     ;
+
     //position of paddle
     x_paddle = 60;
-    y_paddle = height-15;
+    y_paddle = height-115;
    
     //direction of ball
     x_direction = -3;
@@ -82,9 +110,8 @@ void setup()
     x_ball = width/2;
     y_ball = height/2;
    
-    //score, bonusscore
+    //score
     score = 0;
-    score2 = 0;
    
     //mode keyboard, mouse, leap motion
     mode = 0;
@@ -92,23 +119,29 @@ void setup()
     //# lives
     lives = 3;
    
-    bonus = 0;
+    //combo streak
+    combo = 0;
 
     img = loadImage("images/heart.png");
     bg = loadImage("images/bg.jpg");
    
     gameOver = false;
+    pauze = false;
 }
  
 void draw()
 {
     image(bg, 0,0, 800, 500);
+
     if (mode == 0) {
         stats();
         changeMode();
     }else{
 	    if (pauze) {
 	    	//toon controls
+            stats();
+            cp5.getController("Settings").setVisible(true);
+            cp5.getController("Highscore").setVisible(true);
 	    }else{
             cp5.getController("KeyboardPress").setVisible(false);
             cp5.getController("MousePress").setVisible(false);
@@ -136,6 +169,8 @@ void changeMode(){
     textAlign(CENTER);
     textSize(30);
     text("Please select Game Mode", width/2, 100);
+    cp5.getController("Settings").setVisible(false);
+    cp5.getController("Highscore").setVisible(false);
     cp5.getController("KeyboardPress").setVisible(true);
     cp5.getController("MousePress").setVisible(true);
     cp5.getController("LeapPress").setVisible(true);
@@ -148,29 +183,9 @@ void reset() {
     x_ball = width/2;
     y_ball = width/2;
     score = 0;
-    bonus = 0;
+    combo = 0;
     lives = 3;
     gameOver = false;
-}
- 
-void ChooseMode() {
-	if(key == 'l'){
-		mode = 1;
-		play(mode);
-	}
-    if(key == 'k'){
-        mode = 2;
-        play(mode);
-    }
-    if(key == 'm'){
-        mode = 3;
-        play(mode);
-    }
-    if(mode == 0){
-        fill(0, 128, 255);
-        stats();
-        text("K for keyboard mode  / M for mouse mode",width/2 - 130,height/2);
-    }
 }
  
 void drawContent()
@@ -178,7 +193,7 @@ void drawContent()
     smooth();
     fill(13,51,102);
  
- 	//draw the plateau
+ 	//draw the paddle
     rect(x_paddle,y_paddle,80,5);
  
  	//draw the ball
@@ -212,7 +227,6 @@ void moveWithMouse()
 }
 
 void moveWithLeapMotion(){
-	//leap motion blablabla
 	PVector vingerPos = leap.getTip(leap.getFinger(0));
 	x_paddle = (int)vingerPos.x - 40;
 
@@ -228,35 +242,29 @@ void moveWithLeapMotion(){
  
 void bounceBall()
 {
-    // bounce right
-    if (x_ball > (width-5) && x_direction > 0)
+    // bounce right wall
+    if (x_ball > (width-5))
     {
         x_direction = -x_direction;
     }
    
-    //bounce left
+    //bounce left wall
     if (x_ball < 5)
     {
         x_direction = -x_direction;
     }
-    //bounce on plateau
+
+    //bounce on paddle top
+    //if y collides and x is between paddle left and right
     if (y_ball>(y_paddle-5) && x_ball > x_paddle && x_ball<(x_paddle+85))
     {
         y_direction = -y_direction;
         score++;
-        bonus++;
+        combo++;
     }
-    // bounce floor
-    if (y_ball>(y_paddle+10) && x_ball > x_paddle && x_ball<(x_paddle+85))
-    {
-        y_direction = -y_direction;
-        score++;
-        bonus++;
-    }
-   
    
     //bounce roof
-    if (y_ball < 50)
+    if (y_ball < 35)
     {
         y_direction = -y_direction;
     }
@@ -268,7 +276,7 @@ void bounceBall()
         {
             y_direction = -y_direction;
             lives--;
-            bonus = 0;
+            combo = 0;
         }
         if(lives == 0)
         {
@@ -299,10 +307,12 @@ void play(int mode)
     drawContent();
    
     //regain live with 20 score
-    if(score > score2+19 && bonus == 20) {
+    if(combo == 20) {
         lives++;
-        bonus = 0;
-        score2 = score;
+        if (lives > 3) {
+            lives = 3;
+        }
+        combo = 0;
     }
     fill(0, 128, 255);
     stats();
@@ -317,7 +327,7 @@ void stats() {
     textAlign(LEFT);
     textSize(20);
     text("Combo :  ",10,25);
-    text(bonus,95,25);
+    text(combo,95,25);
     textAlign(CENTER);
     textSize(30);
     text(score, width/2, 30);
@@ -354,4 +364,9 @@ public void MousePress(int theValue) {
 
 public void LeapPress(int theValue) {
     mode = 1;
+}
+
+public void Settings(int theValue) {
+    mode = 0;
+    pauze = !pauze;
 }
