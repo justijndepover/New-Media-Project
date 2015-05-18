@@ -5,6 +5,7 @@ import processing.opengl.*;
 
 import com.onformative.leap.*; 
 import com.leapmotion.leap.*; 
+import com.leapmotion.leap.Gesture.Type; 
 import java.util.*; 
 
 import java.util.HashMap; 
@@ -21,11 +22,13 @@ public class pong extends PApplet {
 
 
 
+
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
-boolean pauze, continueGame;
+boolean pauze, gameOver;
 int score, score2;
 int lives, mode, bonus;
 PImage img;
+PImage bg;
 LeapMotionP5 leap;
  
 public void setup()
@@ -33,6 +36,7 @@ public void setup()
     size(800,500);
     background(255);
     leap = new LeapMotionP5(this);
+    leap.enableGesture(Type.TYPE_SCREEN_TAP);
 
     //position of paddle
     x_paddle = 60;
@@ -51,7 +55,7 @@ public void setup()
     score2 = 0;
    
     //mode keyboard, mouse, leap motion
-    mode = 3;
+    mode = 1;
 
     //# lives
     lives = 3;
@@ -59,9 +63,9 @@ public void setup()
     bonus = 0;
 
     img = loadImage("images/heart.png");
+    bg = loadImage("images/bg.jpg");
    
-    //gameover == continueGame = false
-    continueGame = true;
+    gameOver = true;
    
     PFont pong = createFont("Arial", 20);
 
@@ -69,27 +73,38 @@ public void setup()
  
 public void draw()
 {
-	if (pauze) {
-		//doe niets
-	}else{
-	background(200);
-  	    if (continueGame==true) {
-        	//ChooseMode();
-        	play(1);
-  	    }
-  	    if (continueGame==false) {
-  	    	stats();
-        	text("Press mouse to continue", width/2 + 50, height/2);
-        	if(mousePressed) {
-          		reset();
-        	}
-  	    }
+    image(bg, 0,0, 800, 500);
+    if (mode == 0) {
+        stats();
+        changeMode();
+    }else{
+	    if (pauze) {
+	    	//toon controls
+	    }else{
+  	        if (gameOver==false) {
+             	play(mode);
+  	        }
+  	        if (gameOver==true) {
+  	      	    stats();
+                textAlign(CENTER);
+                textSize(40);
+             	text("Game Over", width/2, height/2);
+                textSize(20);
+                text("Press mouse to continue!", width/2, height/2 + 40);
+             	if(mousePressed) {
+               		reset();
+             	}
+  	        }
+        }
     }
+}
+
+public void changeMode(){
+
 }
  
  
 public void reset() {
-    background(255);
     x_direction = -3;
     y_direction = -6;
     x_ball = width/2;
@@ -97,7 +112,7 @@ public void reset() {
     score = 0;
     bonus = 0;
     lives = 3;
-    continueGame = true;
+    gameOver = false;
 }
  
 public void ChooseMode() {
@@ -162,7 +177,14 @@ public void moveWithLeapMotion(){
 	//leap motion blablabla
 	PVector vingerPos = leap.getTip(leap.getFinger(0));
 	x_paddle = (int)vingerPos.x - 40;
-	println(x_paddle);
+
+	if(x_paddle < 0) {
+        x_paddle = 0;
+    }
+   
+    if(x_paddle > (width - 80)) {
+        x_paddle = (width - 80);
+    }
 }
  
  
@@ -212,7 +234,7 @@ public void bounceBall()
         }
         if(lives == 0)
         {
-            continueGame = false;
+            gameOver = true;
         }
     }
 }
@@ -255,8 +277,8 @@ public void stats() {
     rect(0,0,width, 35);
     fill(13,51,102);
     textAlign(LEFT);
-    text("Bonus :  ",50,25);
-    text(bonus,110,25);
+    text("Combo :  ",10,25);
+    text(bonus,90,25);
     textAlign(CENTER);
     textSize(30);
     text(score, width/2, 30);
@@ -270,10 +292,17 @@ public void stats() {
 public void keyPressed()
 {
 	//pauze
-    if(keyCode == 32 && continueGame == true && mode != 0)
+    if(keyCode == 32 && gameOver == false && mode != 0)
     {
         pauze = !pauze;
     }  
+}
+
+public void screenTapGestureRecognized(ScreenTapGesture gesture){
+    if(gameOver == false && mode != 0)
+    {
+        pauze = !pauze;
+    } 
 }
 
   static public void main(String[] passedArgs) {
