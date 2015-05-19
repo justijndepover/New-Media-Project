@@ -683,7 +683,13 @@ public void keyPressed()
             b_showHowTo = false;
         }
         pauze = !pauze;
-    }  
+    }
+
+        if (robot != null) {
+        robot.mouseMove(frame.getLocation().x + 400,frame.getLocation().y + 200);    
+        robot.mousePress(InputEvent.BUTTON1_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_MASK);
+    } 
 }
 
 public void screenTapGestureRecognized(ScreenTapGesture gesture){
@@ -701,7 +707,7 @@ public void screenTapGestureRecognized(ScreenTapGesture gesture){
         pauze = !pauze;
     } */
     	if (robot != null) {
-    		robot.mouseMove(x_leap, y_leap);    
+    		robot.mouseMove(frame.getLocation().x + x_leap,frame.getLocation().y + y_leap);    
     		robot.mousePress(InputEvent.BUTTON1_MASK);
     		robot.mouseRelease(InputEvent.BUTTON1_MASK);
     	}

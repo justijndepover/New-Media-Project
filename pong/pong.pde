@@ -656,7 +656,7 @@ void keyPressed()
             b_showHowTo = false;
         }
         pauze = !pauze;
-    }  
+    }
 }
 
 void screenTapGestureRecognized(ScreenTapGesture gesture){
@@ -674,7 +674,7 @@ void screenTapGestureRecognized(ScreenTapGesture gesture){
         pauze = !pauze;
     } */
     	if (robot != null) {
-    		robot.mouseMove(x_leap, y_leap);    
+    		robot.mouseMove(frame.getLocation().x + x_leap,frame.getLocation().y + y_leap);    
     		robot.mousePress(InputEvent.BUTTON1_MASK);
     		robot.mouseRelease(InputEvent.BUTTON1_MASK);
     	}
