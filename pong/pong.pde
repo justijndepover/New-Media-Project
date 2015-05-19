@@ -7,7 +7,7 @@ import http.requests.*;
 import ddf.minim.*;
 
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
-boolean pauze, gameOver, canPost, b_showScore, b_showHowTo, b_showSetting;
+boolean pauze, gameOver, canPost, b_showScore, b_showHowTo, b_showSetting, playMusic;
 int score;
 int lives, mode, combo;
 String name;
@@ -16,7 +16,8 @@ PImage bg;
 JSONArray json;
 Minim minim;
 AudioPlayer backgroundsong;
-AudioPlayer song;
+AudioPlayer bounce;
+AudioPlayer dead;
 LeapMotionP5 leap;
 ControlP5 cp5;
 ListBox l;
@@ -25,11 +26,15 @@ void setup()
 {
     size(800,500);
     background(255);
+    playMusic = true;
     minim = new Minim(this);
     backgroundsong = minim.loadFile("sound/backgroundsong.mp3");
-    backgroundsong.loop();
-    backgroundsong.rewind();
-    song = minim.loadFile("sound/song.mp3");
+    if(playMusic) {
+      backgroundsong.loop();
+      backgroundsong.rewind();
+    }
+    bounce = minim.loadFile("sound/bounce.mp3");
+    dead = minim.loadFile("sound/dead.wav");
     PFont pong = createFont("Arial", 20);
     leap = new LeapMotionP5(this);
     leap.enableGesture(Type.TYPE_SCREEN_TAP);
@@ -55,6 +60,13 @@ void setup()
      .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
      ;
 
+    cp5.addButton("MusicOnOff")
+     .setValue(0)
+     .setImages(loadImage("images/play.png"),loadImage("images/play.png"),loadImage("images/play.png"))
+     .setPosition(width - 55,50)
+     .updateSize();
+     ;
+     
      cp5.addButton("MousePress")
      .setValue(0) 
      .setCaptionLabel("Mouse")
@@ -205,7 +217,9 @@ void setup()
 void draw()
 {
     image(bg, 0,0, 800, 500);
+    //cp5.getController("MusicOnOff").setVisible(false);
     if (pauze) {
+      cp5.getController("MusicOnOff").setVisible(true);
     if (b_showScore){
         showHighscore();
     }else if(b_showHowTo){
@@ -217,13 +231,15 @@ void draw()
     }
 	}else{
     disableAllControls();
+    cp5.getController("MusicOnOff").setVisible(false);
 	    if (gameOver==false) {
 	     	canPost = true;
      	play(mode);
 	    }
-	    if (gameOver==true) {
-        showGameOver();
-	    }
+      	    if (gameOver==true) {
+              
+              showGameOver();
+      	    }
     }
 }
 
@@ -239,8 +255,8 @@ void showGameOver(){
 }
 
 void showSettings(){
-	stats();
-	cp5.getController("Settings").setVisible(false);
+    stats();
+    cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
     cp5.getController("HowToPlay").setVisible(false);
 
@@ -433,8 +449,10 @@ void bounceBall()
         if(temp != 0){
           x_direction = temp;
         }
-        song.play();
-        song.rewind();
+        if(playMusic){
+        bounce.play();
+        bounce.rewind();
+        }
         y_direction = -y_direction;
         score++;
         combo++;
@@ -449,6 +467,10 @@ void bounceBall()
     //bounce floor
     if (y_ball > (height - 10))
     {
+        if(playMusic){
+          dead.play();
+          dead.rewind();
+        }
         if(lives > 0)
         {
             fill(color(255,0,0));
@@ -587,6 +609,17 @@ public void Settings(int theValue) {
 public void Highscore(int theValue) {
     b_showScore = true;
     json = loadJSONArray("http://student.howest.be/arn.vanhoutte/newmedia/get.php");
+}
+public void MusicOnOff(int theValue) {
+  println(playMusic);
+    playMusic = !playMusic;
+    if(playMusic){
+      cp5.getController("MusicOnOff").setImages(loadImage("images/play.png"),loadImage("images/play.png"),loadImage("images/play.png"));
+      backgroundsong.loop();  
+    }else{
+    cp5.getController("MusicOnOff").setImages(loadImage("images/mute.png"),loadImage("images/mute.png"),loadImage("images/mute.png"));
+      backgroundsong.pause();  
+    }
 }
 
 public void HowToPlay() {
