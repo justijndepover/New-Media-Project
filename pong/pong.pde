@@ -4,6 +4,7 @@ import com.leapmotion.leap.Gesture.Type;
 import java.util.*;
 import controlP5.*;
 import http.requests.*;
+import ddf.minim.*;
 
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
 boolean pauze, gameOver, canPost, b_showScore, b_showHowTo, b_showSetting;
@@ -13,6 +14,9 @@ String name;
 PImage img;
 PImage bg;
 JSONArray json;
+Minim minim;
+AudioPlayer backgroundsong;
+AudioPlayer song;
 LeapMotionP5 leap;
 ControlP5 cp5;
 ListBox l;
@@ -21,6 +25,11 @@ void setup()
 {
     size(800,500);
     background(255);
+    minim = new Minim(this);
+    backgroundsong = minim.loadFile("sound/backgroundsong.mp3");
+    backgroundsong.loop();
+    backgroundsong.rewind();
+    song = minim.loadFile("sound/song.mp3");
     PFont pong = createFont("Arial", 20);
     leap = new LeapMotionP5(this);
     leap.enableGesture(Type.TYPE_SCREEN_TAP);
@@ -196,24 +205,24 @@ void setup()
 void draw()
 {
     image(bg, 0,0, 800, 500);
-	if (pauze) {
-        if (b_showScore){
-            showHighscore();
-        }else if(b_showHowTo){
-            showHowToPlay();
-        }else if(b_showSetting){
-            showSettings();
-        }else{
-            showPauze();
-        }
+    if (pauze) {
+    if (b_showScore){
+        showHighscore();
+    }else if(b_showHowTo){
+        showHowToPlay();
+    }else if(b_showSetting){
+        showSettings();
+    }else{
+        showPauze();
+    }
 	}else{
-        disableAllControls();
-  	    if (gameOver==false) {
-  	     	canPost = true;
-         	play(mode);
-  	    }
-  	    if (gameOver==true) {
-            showGameOver();
+    disableAllControls();
+	    if (gameOver==false) {
+	     	canPost = true;
+     	play(mode);
+	    }
+	    if (gameOver==true) {
+        showGameOver();
 	    }
     }
 }
@@ -242,7 +251,7 @@ void showSettings(){
 }
 
 void showHighscore(){
-	stats();
+    stats();
     cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
     cp5.getController("HowToPlay").setVisible(false);
@@ -424,6 +433,8 @@ void bounceBall()
         if(temp != 0){
           x_direction = temp;
         }
+        song.play();
+        song.rewind();
         y_direction = -y_direction;
         score++;
         combo++;
