@@ -1,3 +1,6 @@
+import java.awt.Robot;
+import java.awt.event.InputEvent;
+import java.awt.AWTException;
 import com.onformative.leap.*;
 import com.leapmotion.leap.*;
 import com.leapmotion.leap.Gesture.Type;
@@ -8,6 +11,7 @@ import ddf.minim.*;
 
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
 boolean pauze, gameOver, canPost, b_showScore, b_showHowTo, b_showSetting, playMusic;
+int x_leap, y_leap;
 int score;
 int lives, mode, combo;
 int level;
@@ -21,6 +25,7 @@ AudioPlayer bounce;
 AudioPlayer dead;
 LeapMotionP5 leap;
 ControlP5 cp5;
+Robot robot = null;
 int rows = 7; //Number of bricks per row
 int columns = 7; //Number of columns
 int total = rows * columns; //Total number of bricks
@@ -40,6 +45,12 @@ void setup()
     PFont pong = createFont("Arial", 20);
     leap = new LeapMotionP5(this);
     leap.enableGesture(Type.TYPE_SCREEN_TAP);
+    try {
+    	robot = new Robot();
+    }catch(AWTException awt){
+    	println("failed to load robot");
+    }
+    
 
     for (int i = 0; i < rows; i++){
     	for (int j = 0; j< columns; j++){
@@ -235,6 +246,12 @@ void draw()
     	level++;
     }
     if (pauze) {
+    	PVector vingerPos = leap.getTip(leap.getFinger(0));
+    	fill(color(255, 0, 0));
+    	x_leap = (int)vingerPos.x;
+    	y_leap = (int)vingerPos.y;
+    	ellipse(x_leap, y_leap, 5, 5);
+
       cp5.getController("MusicOnOff").setVisible(true);
         if (b_showScore){
             showHighscore();
@@ -643,7 +660,7 @@ void keyPressed()
 }
 
 void screenTapGestureRecognized(ScreenTapGesture gesture){
-    if(gameOver == false && mode != 0)
+    /*if(gameOver == false && mode != 0)
     {
         if (b_showScore == true) {
             b_showScore = false;
@@ -655,8 +672,13 @@ void screenTapGestureRecognized(ScreenTapGesture gesture){
             b_showHowTo = false;
         }
         pauze = !pauze;
-    } 
-}
+    } */
+    	if (robot != null) {
+    		robot.mouseMove(x_leap, y_leap);    
+    		robot.mousePress(InputEvent.BUTTON1_MASK);
+    		robot.mouseRelease(InputEvent.BUTTON1_MASK);
+    	}
+    }
 
 public void KeyboardPress(int theValue) {
     mode = 2;
