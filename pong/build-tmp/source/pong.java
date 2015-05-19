@@ -29,7 +29,7 @@ public class pong extends PApplet {
 
 
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
-boolean pauze, gameOver, canPost;
+boolean pauze, gameOver, canPost, b_showScore, b_showHowTo, b_showSetting;
 int score;
 int lives, mode, combo;
 String name;
@@ -51,6 +51,14 @@ public void setup()
 
     cp5.setColorBackground(color(255,255,255));
 
+    cp5.addTextfield("Name")
+     .setPosition(width/2 - 100, height/2 - 50)
+     .setSize(200,40)
+     .setFont(pong)
+     .setFocus(true)
+     .setVisible(false)
+     .setColor(color(255,0,0))
+     ;
 
     cp5.addButton("KeyboardPress")
      .setValue(0)
@@ -70,6 +78,15 @@ public void setup()
      .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
      ;
 
+    cp5.addButton("PostHighscore")
+     .setValue(0)
+     .setCaptionLabel("Post highscore and continue")
+     .setPosition(width/2 - 100, height/2 + 20)
+     .setSize(200,40)
+     .setVisible(false)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
      cp5.addButton("LeapPress")
      .setValue(0)
      .setCaptionLabel("Leap Motion")
@@ -81,7 +98,8 @@ public void setup()
 
      cp5.addButton("Settings")
      .setValue(0) 
-     .setPosition(width/2 - 100,180)
+     .setCaptionLabel("Choose Gamemode")
+     .setPosition(width/2 - 100,150)
      .setSize(200,40)
      .setVisible(false)
      .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
@@ -89,10 +107,33 @@ public void setup()
 
      cp5.addButton("Highscore")
      .setValue(0) 
-     .setPosition(width/2 - 100,260)
+     .setPosition(width/2 - 100,230)
      .setSize(200,40)
      .setVisible(false)
      .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
+     cp5.addButton("HowToPlay")
+     .setValue(0) 
+     .setCaptionLabel("How to play")
+     .setPosition(width/2 - 100,310)
+     .setSize(200,40)
+     .setVisible(false)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
+     cp5.addButton("Return")
+     .setValue(0)
+     .setPosition(15,50)
+     .setSize(80,40)
+     .setVisible(false)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
+     cp5.getController("Return")
+     .getCaptionLabel()
+     .setFont(createFont("Arial", 15))
+     .setColor(0)
      ;
 
      cp5.getController("KeyboardPress")
@@ -125,28 +166,23 @@ public void setup()
      .setColor(0)
      ;
 
-    /*ControlP5.printPublicMethodsFor(ListBox.class);
+     cp5.getController("HowToPlay")
+     .getCaptionLabel()
+     .setFont(createFont("Arial", 15))
+     .setColor(0)
+     ;
 
-    l = cp5.addListBox("myList")
-           .setPosition(width/2 - 100,230)
-           .setVisible(false)
-           .setSize(120, 120)
-           .setItemHeight(15)
-           .setBarHeight(15)
-           .setColorForeground(color(255, 100,0))
-           ;
-  
-    l.captionLabel().toUpperCase(true);
-    l.captionLabel().align(ControlP5.CENTER, ControlP5.CENTER);
-    l.captionLabel().setFont(createFont("Arial", 15));
-    l.captionLabel().set("Topscores");
-    l.captionLabel().style().marginTop = 3;
-    l.valueLabel().style().marginTop = 3;
-	*/
+     cp5.getController("PostHighscore")
+     .getCaptionLabel()
+     .setFont(createFont("Arial", 10))
+     .setColor(0)
+     ;
+
+
 
     //position of paddle
     x_paddle = 60;
-    y_paddle = height-115;
+    y_paddle = height-15;
    
     //direction of ball
     x_direction = -3;
@@ -174,75 +210,95 @@ public void setup()
     bg = loadImage("images/bg.jpg");
    
     gameOver = false;
-    pauze = false;
+    pauze = true;
+    b_showScore = false;
+    b_showHowTo = false;
+    b_showSetting = false;
 }
  
 public void draw()
 {
     image(bg, 0,0, 800, 500);
-
-    if (mode == 0) {
-        showSettings();
-    }
-
-    if (mode == 4)
-    {
-        showHighscore();
-    }
-
-    if (mode == 1 || mode == 2 || mode == 3) {
-	    if (pauze) {
+	if (pauze) {
+        if (b_showScore){
+            showHighscore();
+        }else if(b_showHowTo){
+            showHowToPlay();
+        }else if(b_showSetting){
+            showSettings();
+        }else{
             showPauze();
-	    }else{
-            disableAllControls();
-  	        if (gameOver==false) {
-  	        	canPost = true;
-             	play(mode);
-  	        }
-  	        if (gameOver==true) {
-                textAlign(CENTER);
-                textSize(40);
-             	text("Game Over", width/2, height/2);
-                textSize(20);
-                text("Press mouse to continue!", width/2, height/2 + 40);
-                if(score!=0 && canPost == true){
-                  PostScore();
-                  canPost = false;
-                }
-             	if(mousePressed) {
-               		reset();
-             	}
-  	        }
         }
+	}else{
+        disableAllControls();
+  	    if (gameOver==false) {
+  	     	canPost = true;
+         	play(mode);
+  	    }
+  	    if (gameOver==true) {
+            showGameOver();
+	    }
     }
+}
+
+public void showGameOver(){
+    textAlign(CENTER);
+    textSize(40);
+    text("Game Over", width/2, height/4);
+    textSize(20);
+    text("Enter name to continue!", width/2, height/4 + 40);
+    
+    cp5.getController("Name").setVisible(true);
+    cp5.getController("PostHighscore").setVisible(true);
 }
 
 public void showSettings(){
 	stats();
 	cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
+    cp5.getController("HowToPlay").setVisible(false);
 
     cp5.getController("KeyboardPress").setVisible(true);
     cp5.getController("MousePress").setVisible(true);
     cp5.getController("LeapPress").setVisible(true);
+    cp5.getController("Return").setVisible(true);
 }
 
 public void showHighscore(){
 	stats();
-	cp5.getController("Settings").setVisible(false);
+    cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
+    cp5.getController("HowToPlay").setVisible(false);
     cp5.getController("KeyboardPress").setVisible(false);
     cp5.getController("MousePress").setVisible(false);
     cp5.getController("LeapPress").setVisible(false);
-    for (int i = 0; i < json.size(); i++) {
+    cp5.getController("Return").setVisible(true);
     
-    JSONObject item = json.getJSONObject(i); 
+    fill(255);
+    rect(width/2 - 200, 60, 400, 396);
 
+    textAlign(CENTER);
+    textSize(25);
+    fill(0);
+    text("Highscore", width/2, 100);
+
+    for (int i = 0; i < json.size(); i++){
+        if (i%2 == 1) {
+        fill(244);
+        rect(width/2-200, 80+34*i, 400, 34);
+    }
+    }
+    for (int i = 0; i < json.size(); i++) {
+    JSONObject item = json.getJSONObject(i); 
     String name = item.getString("Name");
     Integer score = item.getInt("Score");
-    //ListBoxItem lbi = l.addItem(name + " " + score, i);
-    textAlign(CENTER);
-    text(name + ": " + score, width/2, 100+40*i);
+
+    fill(0);
+    textSize(20);
+    textAlign(LEFT);
+    text(name + ":", width/2 - 180, 140+34*i);
+    textAlign(RIGHT);
+    text(score, width/2 + 180, 140+34*i);
   }
 }
 
@@ -250,19 +306,45 @@ public void showPauze(){
     stats();
     cp5.getController("Settings").setVisible(true);
     cp5.getController("Highscore").setVisible(true);
+    cp5.getController("HowToPlay").setVisible(true);
 
     cp5.getController("KeyboardPress").setVisible(false);
     cp5.getController("MousePress").setVisible(false);
     cp5.getController("LeapPress").setVisible(false);
+    cp5.getController("Return").setVisible(false);
+}
+
+public void showHowToPlay() {
+    stats();
+    disableAllControls();
+    cp5.getController("Return").setVisible(true);
+    fill(255);
+    rect(width/2 - 200, 60, 400, 396);
+    fill(0);
+    textSize(25);
+    text("How To Play", width/2, 100);
+    textSize(15);
+    textAlign(LEFT);
+    text("Open and close menu by pressing spacebar", width/2 - 180, 150);
+    text("You can choose out of 3 gamemodes:", width/2 - 180, 180);
+    text("Control with Mouse", width/2 - 160, 200);
+    text("Control with Keyboard", width/2 - 160, 220);
+    text("Control with Leap Motion", width/2 - 160, 240);
+    text("'Leap Motion mode' requires actual Leap", width/2 - 180, 270);
+    text("Motion device", width/2 - 180, 290);
+    text("After combo score of 20, you receive", width/2 - 180, 310);
+    text("an extra life", width/2 - 180, 330);
 }
 
 public void disableAllControls(){
 	stats();
 	cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
+    cp5.getController("HowToPlay").setVisible(false);
     cp5.getController("KeyboardPress").setVisible(false);
     cp5.getController("MousePress").setVisible(false);
     cp5.getController("LeapPress").setVisible(false);
+    cp5.getController("Return").setVisible(false);
 }
 
 public void changeMode(){
@@ -272,6 +354,7 @@ public void changeMode(){
     text("Please select Game Mode", width/2, 100);
     cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
+    cp5.getController("HowToPlay").setVisible(false);
     cp5.getController("KeyboardPress").setVisible(true);
     cp5.getController("MousePress").setVisible(true);
     cp5.getController("LeapPress").setVisible(true);
@@ -359,6 +442,11 @@ public void bounceBall()
     //if y collides and x is between paddle left and right
     if (y_ball>(y_paddle-5) && y_ball<(y_paddle+5) && x_ball > x_paddle && x_ball<(x_paddle+85) && y_direction > 0)
     {
+        int i = x_ball - (x_paddle + 42);
+        int temp = i/5;
+        if(temp != 0){
+          x_direction = temp;
+        }
         y_direction = -y_direction;
         score++;
         combo++;
@@ -375,6 +463,8 @@ public void bounceBall()
     {
         if(lives > 0)
         {
+            fill(color(255,0,0));
+            rect(0, 497, width, 3);
             y_direction = -y_direction;
             lives--;
             combo = 0;
@@ -444,6 +534,15 @@ public void keyPressed()
 	//pauze
     if(keyCode == 32 && gameOver == false && mode != 0)
     {
+        if (b_showScore == true) {
+            b_showScore = false;
+        }
+        if (b_showSetting == true) {
+            b_showSetting = false;
+        }
+        if (b_showHowTo == true) {
+            b_showHowTo = false;
+        }
         pauze = !pauze;
     }  
 }
@@ -451,35 +550,67 @@ public void keyPressed()
 public void screenTapGestureRecognized(ScreenTapGesture gesture){
     if(gameOver == false && mode != 0)
     {
+        if (b_showScore == true) {
+            b_showScore = false;
+        }
+        if (b_showSetting == true) {
+            b_showSetting = false;
+        }
+        if (b_showHowTo == true) {
+            b_showHowTo = false;
+        }
         pauze = !pauze;
     } 
 }
 
 public void KeyboardPress(int theValue) {
     mode = 2;
+    pauze = false;
+    b_showSetting = false;
+}
+
+public void PostHighscore(int theValue) {
+    if(cp5.get(Textfield.class,"Name").getText() != "" & score != 0){
+      GetRequest get = new GetRequest("http://student.howest.be/arn.vanhoutte/newmedia/post.php?name=" + cp5.get(Textfield.class,"Name").getText() + "&score=" + score);
+      get.send();
+    
+    }
+    cp5.getController("Name").setVisible(false);
+    cp5.getController("PostHighscore").setVisible(false);
+    reset();
 }
 
 public void MousePress(int theValue) {
     mode = 3;
+    pauze = false;
+    b_showSetting = false;
 }
 
 public void LeapPress(int theValue) {
     mode = 1;
+    pauze = false;
+    b_showSetting = false;
 }
 
 public void Settings(int theValue) {
-    mode = 0;
-    pauze = !pauze;
-    println(pauze);
+    b_showSetting = true;
 }
+
 public void Highscore(int theValue) {
-    mode = 4;
-    println(pauze);
+    b_showScore = true;
     json = loadJSONArray("http://student.howest.be/arn.vanhoutte/newmedia/get.php");
 }
-public void PostScore(){
-    GetRequest get = new GetRequest("http://student.howest.be/arn.vanhoutte/newmedia/post.php?name=" + name + "&score=" + score);
-    get.send();
+
+public void HowToPlay() {
+    b_showHowTo = true;
+}
+
+public void Return() {
+    println("return pressed" + b_showHowTo + " " + b_showScore + " " + b_showSetting);
+    b_showScore = false;
+    b_showSetting = false;
+    b_showHowTo = false;
+    println("return pressed" + b_showHowTo + " " + b_showScore + " " + b_showSetting);
 }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "pong" };
