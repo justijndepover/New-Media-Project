@@ -9,6 +9,7 @@ import com.leapmotion.leap.Gesture.Type;
 import java.util.*; 
 import controlP5.*; 
 import http.requests.*; 
+import ddf.minim.*; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -28,25 +29,48 @@ public class pong extends PApplet {
 
 
 
+
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
-boolean pauze, gameOver, canPost, b_showScore, b_showHowTo, b_showSetting;
+boolean pauze, gameOver, canPost, b_showScore, b_showHowTo, b_showSetting, playMusic;
 int score;
 int lives, mode, combo;
+int level;
 String name;
 PImage img;
 PImage bg;
 JSONArray json;
+Minim minim;
+AudioPlayer backgroundsong;
+AudioPlayer bounce;
+AudioPlayer dead;
 LeapMotionP5 leap;
 ControlP5 cp5;
-ListBox l;
+int rows = 7; //Number of bricks per row
+int columns = 7; //Number of columns
+int total = rows * columns; //Total number of bricks
+Brick[] box = new Brick[total];
  
 public void setup()
 {
     size(800,500);
     background(255);
+    playMusic = false;
+    minim = new Minim(this);
+    bounce = minim.loadFile("sound/bounce.mp3");
+    dead = minim.loadFile("sound/dead.wav");
+    backgroundsong = minim.loadFile("sound/backgroundsong.mp3");
+
     PFont pong = createFont("Arial", 20);
     leap = new LeapMotionP5(this);
     leap.enableGesture(Type.TYPE_SCREEN_TAP);
+
+    for (int i = 0; i < rows; i++){
+    	for (int j = 0; j< columns; j++){
+    	  box[i*rows + j] = new Brick((i+1) *width/(rows + 2), 20 + (j+1) * 30); //places all the bricks into the array, properly labelled.
+    	}
+    }
+
+
     cp5 = new ControlP5(this);
 
     cp5.setColorBackground(color(255,255,255));
@@ -69,6 +93,13 @@ public void setup()
      .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
      ;
 
+    cp5.addButton("MusicOnOff")
+     .setValue(0)
+     .setImages(loadImage("images/play.png"),loadImage("images/play.png"),loadImage("images/play.png"))
+     .setPosition(width - 55,50)
+     .updateSize();
+     ;
+     
      cp5.addButton("MousePress")
      .setValue(0) 
      .setCaptionLabel("Mouse")
@@ -190,7 +221,7 @@ public void setup()
    
     //position of ball
     x_ball = width/2;
-    y_ball = height/2;
+    y_ball = height - 100;
    
     //score
     score = 0;
@@ -200,6 +231,8 @@ public void setup()
 
     //# lives
     lives = 3;
+
+    level = 1;
    
     //combo streak
     combo = 0;
@@ -219,25 +252,34 @@ public void setup()
 public void draw()
 {
     image(bg, 0,0, 800, 500);
-	if (pauze) {
-        if (b_showScore){
-            showHighscore();
-        }else if(b_showHowTo){
-            showHowToPlay();
-        }else if(b_showSetting){
-            showSettings();
-        }else{
-            showPauze();
-        }
+    if (score == level * total) {
+    	for(int i = 0; i < total; i ++){
+    		box[i].reset();
+    	}
+    	level++;
+    }
+    if (pauze) {
+      cp5.getController("MusicOnOff").setVisible(true);
+    if (b_showScore){
+        showHighscore();
+    }else if(b_showHowTo){
+        showHowToPlay();
+    }else if(b_showSetting){
+        showSettings();
+    }else{
+        showPauze();
+    }
 	}else{
-        disableAllControls();
-  	    if (gameOver==false) {
-  	     	canPost = true;
-         	play(mode);
-  	    }
-  	    if (gameOver==true) {
-            showGameOver();
+    disableAllControls();
+    cp5.getController("MusicOnOff").setVisible(false);
+	    if (gameOver==false) {
+	     	canPost = true;
+     	play(mode);
 	    }
+      	    if (gameOver==true) {
+              
+              showGameOver();
+      	    }
     }
 }
 
@@ -253,8 +295,8 @@ public void showGameOver(){
 }
 
 public void showSettings(){
-	stats();
-	cp5.getController("Settings").setVisible(false);
+    stats();
+    cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
     cp5.getController("HowToPlay").setVisible(false);
 
@@ -265,7 +307,7 @@ public void showSettings(){
 }
 
 public void showHighscore(){
-	stats();
+    stats();
     cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
     cp5.getController("HowToPlay").setVisible(false);
@@ -334,6 +376,8 @@ public void showHowToPlay() {
     text("Motion device", width/2 - 180, 290);
     text("After combo score of 20, you receive", width/2 - 180, 310);
     text("an extra life", width/2 - 180, 330);
+    text("Break all the bricks to get to the", width/2 - 180, 340);
+    text("next level", width/2 - 180, 360);
 }
 
 public void disableAllControls(){
@@ -445,10 +489,13 @@ public void bounceBall()
         int i = x_ball - (x_paddle + 42);
         int temp = i/5;
         if(temp != 0){
-          x_direction = temp;
+          x_direction = temp * level;
+        }
+        if(playMusic){
+        bounce.play();
+        bounce.rewind();
         }
         y_direction = -y_direction;
-        score++;
         combo++;
     }
    
@@ -461,6 +508,10 @@ public void bounceBall()
     //bounce floor
     if (y_ball > (height - 10))
     {
+        if(playMusic){
+          dead.play();
+          dead.rewind();
+        }
         if(lives > 0)
         {
             fill(color(255,0,0));
@@ -474,10 +525,65 @@ public void bounceBall()
             gameOver = true;
         }
     }
+
+    for (int i = 0; i < total; i ++)
+      {
+        //If ball hits bottom of brick, ball moves down, increment score
+        if (y_ball - 5 <= box[i].y + box[i].h &&  y_ball - 5 >= box[i].y && x_ball >= box[i].x && x_ball <= box[i].x + box[i].w  && box[i].hit == false )
+        {
+        	y_direction = -y_direction;
+          	box[i].gotHit();
+          	score ++;
+          	if(playMusic){
+        		bounce.play();
+        		bounce.rewind();
+        	}
+        }
+     
+        //If ball hits top of brick ball moves up, increment score
+        if (y_ball + 5 >= box[i].y && y_ball - 5 <= box[i].y + box[i].h/2 && x_ball >= box[i].x && x_ball <= box[i].x + box[i].w && box[i].hit == false )
+        {
+          y_direction = -y_direction;
+          box[i].gotHit();
+          score ++;
+          if(playMusic){
+        		bounce.play();
+        		bounce.rewind();
+        	}
+        }
+     
+        //if ball hits the left of the brick, ball switches to the right, and moves in same direction, increment score
+        if (x_ball + 5 >= box[i].x && x_ball + 5 <= box[i].x + box[i].w / 2 && y_ball >= box[i].y && y_ball <= box[i].y + box[i].h  && box[i].hit == false)
+        {
+          x_direction = - x_direction;
+          box[i].gotHit();
+          score ++;
+          if(playMusic){
+        		bounce.play();
+        		bounce.rewind();
+        	}
+        }
+     
+        //if ball hits the right of the brick, ball switches to the left, and moves in same direction, increment score
+        if (x_ball - 5 <= box[i].x + box[i].w && x_ball + 5 >= box[i].x + box[i].w / 2 && y_ball >= box[i].y && y_ball <= box[i].y + box[i].h  && box[i].hit == false)
+        {
+          x_direction = - x_direction;
+          box[i].gotHit();
+          score ++;
+          if(playMusic){
+        		bounce.play();
+        		bounce.rewind();
+        	}
+        }
+    }
 }
  
 public void play(int mode)
 {
+	for (int i = 0; i<total; i++){
+    	box[i].update();
+  	}
+
 	//move ball
     x_ball = x_ball + x_direction;
     y_ball = y_ball + y_direction;
@@ -516,9 +622,11 @@ public void stats() {
     rect(0,0,width, 35);
     fill(13,51,102);
     textAlign(LEFT);
-    textSize(20);
-    text("Combo :  ",10,25);
-    text(combo,95,25);
+    textSize(10);
+    text("Combo :  ",10,15);
+    text(combo,95,15);
+    text("Level :  ",10,28);
+    text(level,95,28);
     textAlign(CENTER);
     textSize(30);
     text(score, width/2, 30);
@@ -564,6 +672,7 @@ public void screenTapGestureRecognized(ScreenTapGesture gesture){
 }
 
 public void KeyboardPress(int theValue) {
+	println("keyboard mode");
     mode = 2;
     pauze = false;
     b_showSetting = false;
@@ -600,18 +709,82 @@ public void Highscore(int theValue) {
     b_showScore = true;
     json = loadJSONArray("http://student.howest.be/arn.vanhoutte/newmedia/get.php");
 }
+public void MusicOnOff(int theValue) {
+    playMusic = !playMusic;
+    if(playMusic){
+      cp5.getController("MusicOnOff").setImages(loadImage("images/play.png"),loadImage("images/play.png"),loadImage("images/play.png"));
+      backgroundsong.loop();  
+    }else{
+    cp5.getController("MusicOnOff").setImages(loadImage("images/mute.png"),loadImage("images/mute.png"),loadImage("images/mute.png"));
+      backgroundsong.pause();  
+    }
+}
 
 public void HowToPlay() {
     b_showHowTo = true;
 }
 
 public void Return() {
-    println("return pressed" + b_showHowTo + " " + b_showScore + " " + b_showSetting);
     b_showScore = false;
     b_showSetting = false;
     b_showHowTo = false;
-    println("return pressed" + b_showHowTo + " " + b_showScore + " " + b_showSetting);
 }
+
+class Brick
+{
+  float x; //brick x
+  float y; //brick y
+  float w; //brick width
+  float h; //brich height
+  float r; //brick red val
+  float g; //grick green val
+  float b; //brick blue val
+ 
+  boolean hit; //whether or not the brick has been hit
+ 
+ 
+    Brick(float x0, float y0)
+  {
+    x = x0;
+    y = y0;
+ 
+    //pastel colors
+    r = random(128, 255);
+    g = random(128, 255);
+    b = random(128, 255);
+    w = 50; //brick width
+    h = 15; //brick height
+ 
+    hit = false; //brick is initially not hit
+  }
+ 
+  //Draws the brick
+  public void update()
+  {
+  	if (hit) {
+  		
+  	}else{
+		noStroke();
+    	fill(r, g, b);
+    	rect(x, y, w, h);
+  	}
+  }
+ 
+  //What happens to the brick once it gets hit
+  public void gotHit()
+  {
+   	hit = true;
+  }
+
+  public void reset(){
+  	hit = false;
+  	r = random(128, 255);
+    g = random(128, 255);
+    b = random(128, 255);
+  }
+}
+
+
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "pong" };
     if (passedArgs != null) {
