@@ -4,6 +4,7 @@ import processing.event.*;
 import processing.opengl.*; 
 
 import java.awt.Robot; 
+import java.awt.*; 
 import java.awt.event.InputEvent; 
 import java.awt.AWTException; 
 import com.onformative.leap.*; 
@@ -24,6 +25,7 @@ import java.io.OutputStream;
 import java.io.IOException; 
 
 public class pong extends PApplet {
+
 
 
 
@@ -705,9 +707,14 @@ public void screenTapGestureRecognized(ScreenTapGesture gesture){
         pauze = !pauze;
     } */
     	if (robot != null) {
+            PointerInfo a = MouseInfo.getPointerInfo();
+            Point b  = a.getLocation();
+            int x = (int)b.getX();
+            int y = (int)b.getY();
     		robot.mouseMove(frame.getLocation().x + x_leap,frame.getLocation().y + y_leap);    
     		robot.mousePress(InputEvent.BUTTON1_MASK);
     		robot.mouseRelease(InputEvent.BUTTON1_MASK);
+            robot.mouseMove(x,y); 
     	}
     }
 

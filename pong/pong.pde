@@ -1,4 +1,5 @@
 import java.awt.Robot;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.AWTException;
 import com.onformative.leap.*;
@@ -664,8 +665,7 @@ void keyPressed()
 }
 
 void screenTapGestureRecognized(ScreenTapGesture gesture){
-    /*if(gameOver == false && mode != 0)
-    {
+    if(gameOver == false && mode != 0 && pauze == false){
         if (b_showScore == true) {
             b_showScore = false;
         }
@@ -676,13 +676,17 @@ void screenTapGestureRecognized(ScreenTapGesture gesture){
             b_showHowTo = false;
         }
         pauze = !pauze;
-    } */
-    	if (robot != null) {
-    		robot.mouseMove(frame.getLocation().x + x_leap,frame.getLocation().y + y_leap);    
-    		robot.mousePress(InputEvent.BUTTON1_MASK);
-    		robot.mouseRelease(InputEvent.BUTTON1_MASK);
-    	}
+    }else if(robot != null) {
+        PointerInfo a = MouseInfo.getPointerInfo();
+        Point b  = a.getLocation();
+        int x = (int)b.getX();
+        int y = (int)b.getY();
+    	robot.mouseMove(frame.getLocation().x + x_leap,frame.getLocation().y + y_leap);    
+    	robot.mousePress(InputEvent.BUTTON1_MASK);
+    	robot.mouseRelease(InputEvent.BUTTON1_MASK);
+        robot.mouseMove(x,y); 
     }
+}
 
 public void KeyboardPress(int theValue) {
     mode = 2;
