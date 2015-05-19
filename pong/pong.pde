@@ -29,6 +29,7 @@ Brick[] box = new Brick[total];
 void setup()
 {
     size(800,500);
+
     background(255);
     playMusic = false;
     minim = new Minim(this);
@@ -186,7 +187,6 @@ void setup()
      ;
 
 
-
     //position of paddle
     x_paddle = 60;
     y_paddle = height-15;
@@ -236,15 +236,15 @@ void draw()
     }
     if (pauze) {
       cp5.getController("MusicOnOff").setVisible(true);
-    if (b_showScore){
-        showHighscore();
-    }else if(b_showHowTo){
-        showHowToPlay();
-    }else if(b_showSetting){
-        showSettings();
-    }else{
-        showPauze();
-    }
+        if (b_showScore){
+            showHighscore();
+        }else if(b_showHowTo){
+            showHowToPlay();
+        }else if(b_showSetting){
+            showSettings();
+        }else{
+            showPauze();
+        }
 	}else{
     disableAllControls();
     cp5.getController("MusicOnOff").setVisible(false);
@@ -334,8 +334,14 @@ void showPauze(){
 
 void showHowToPlay() {
     stats();
-    disableAllControls();
+    cp5.getController("Settings").setVisible(false);
+    cp5.getController("Highscore").setVisible(false);
+    cp5.getController("HowToPlay").setVisible(false);
+    cp5.getController("KeyboardPress").setVisible(false);
+    cp5.getController("MousePress").setVisible(false);
+    cp5.getController("LeapPress").setVisible(false);
     cp5.getController("Return").setVisible(true);
+
     fill(255);
     rect(width/2 - 200, 60, 400, 396);
     fill(0);
@@ -352,8 +358,8 @@ void showHowToPlay() {
     text("Motion device", width/2 - 180, 290);
     text("After combo score of 20, you receive", width/2 - 180, 310);
     text("an extra life", width/2 - 180, 330);
-    text("Break all the bricks to get to the", width/2 - 180, 340);
-    text("next level", width/2 - 180, 360);
+    text("Break all the bricks to get to the", width/2 - 180, 370);
+    text("next level", width/2 - 180, 390);
 }
 
 void disableAllControls(){
@@ -385,11 +391,16 @@ void reset() {
     x_direction = -3;
     y_direction = -6;
     x_ball = width/2;
-    y_ball = width/2;
+    y_ball = height - 100;
     score = 0;
     combo = 0;
     lives = 3;
+    level = 1;
     gameOver = false;
+    for(int i = 0; i < total; i ++){
+        box[i].reset();
+    }
+
 }
  
 void drawContent()
@@ -408,11 +419,11 @@ void moveWithKeyboard()
 {
     if(keyPressed) {
         if(keyCode == LEFT && x_paddle > 0) {
-            x_paddle -= 5;
+            x_paddle -= 10;
         }
    
         if(keyCode == RIGHT && x_paddle < (width - 80)) {
-            x_paddle+= 5;
+            x_paddle+= 10;
         }
     }
 }
@@ -447,20 +458,20 @@ void moveWithLeapMotion(){
 void bounceBall()
 {
     // bounce right wall
-    if (x_ball > (width-5))
+    if (x_ball >= (width-5))
     {
         x_direction = -x_direction;
     }
    
     //bounce left wall
-    if (x_ball < 5)
+    if (x_ball <= 5)
     {
         x_direction = -x_direction;
     }
 
     //bounce on paddle top
     //if y collides and x is between paddle left and right
-    if (y_ball>(y_paddle-5) && y_ball<(y_paddle+5) && x_ball > x_paddle && x_ball<(x_paddle+85) && y_direction > 0)
+    if (y_ball>=(y_paddle-5) && y_ball<=(y_paddle+5) && x_ball >= x_paddle && x_ball<=(x_paddle+85) && y_direction > 0)
     {
         int i = x_ball - (x_paddle + 42);
         int temp = i/5;
@@ -476,13 +487,13 @@ void bounceBall()
     }
    
     //bounce roof
-    if (y_ball < 35)
+    if (y_ball <= 35)
     {
         y_direction = -y_direction;
     }
    
     //bounce floor
-    if (y_ball > (height - 10))
+    if (y_ball >= (height - 10))
     {
         if(playMusic){
           dead.play();
@@ -648,7 +659,6 @@ void screenTapGestureRecognized(ScreenTapGesture gesture){
 }
 
 public void KeyboardPress(int theValue) {
-	println("keyboard mode");
     mode = 2;
     pauze = false;
     b_showSetting = false;

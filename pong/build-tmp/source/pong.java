@@ -53,6 +53,7 @@ Brick[] box = new Brick[total];
 public void setup()
 {
     size(800,500);
+
     background(255);
     playMusic = false;
     minim = new Minim(this);
@@ -210,7 +211,6 @@ public void setup()
      ;
 
 
-
     //position of paddle
     x_paddle = 60;
     y_paddle = height-15;
@@ -260,15 +260,15 @@ public void draw()
     }
     if (pauze) {
       cp5.getController("MusicOnOff").setVisible(true);
-    if (b_showScore){
-        showHighscore();
-    }else if(b_showHowTo){
-        showHowToPlay();
-    }else if(b_showSetting){
-        showSettings();
-    }else{
-        showPauze();
-    }
+        if (b_showScore){
+            showHighscore();
+        }else if(b_showHowTo){
+            showHowToPlay();
+        }else if(b_showSetting){
+            showSettings();
+        }else{
+            showPauze();
+        }
 	}else{
     disableAllControls();
     cp5.getController("MusicOnOff").setVisible(false);
@@ -295,6 +295,7 @@ public void showGameOver(){
 }
 
 public void showSettings(){
+    println("show settings");
     stats();
     cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
@@ -307,6 +308,7 @@ public void showSettings(){
 }
 
 public void showHighscore(){
+    println("show highscore");
     stats();
     cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
@@ -345,6 +347,7 @@ public void showHighscore(){
 }
 
 public void showPauze(){
+    println("show pauze");
     stats();
     cp5.getController("Settings").setVisible(true);
     cp5.getController("Highscore").setVisible(true);
@@ -358,8 +361,15 @@ public void showPauze(){
 
 public void showHowToPlay() {
     stats();
-    disableAllControls();
+    println("show how to play");
+    cp5.getController("Settings").setVisible(false);
+    cp5.getController("Highscore").setVisible(false);
+    cp5.getController("HowToPlay").setVisible(false);
+    cp5.getController("KeyboardPress").setVisible(false);
+    cp5.getController("MousePress").setVisible(false);
+    cp5.getController("LeapPress").setVisible(false);
     cp5.getController("Return").setVisible(true);
+
     fill(255);
     rect(width/2 - 200, 60, 400, 396);
     fill(0);
@@ -376,11 +386,12 @@ public void showHowToPlay() {
     text("Motion device", width/2 - 180, 290);
     text("After combo score of 20, you receive", width/2 - 180, 310);
     text("an extra life", width/2 - 180, 330);
-    text("Break all the bricks to get to the", width/2 - 180, 340);
-    text("next level", width/2 - 180, 360);
+    text("Break all the bricks to get to the", width/2 - 180, 370);
+    text("next level", width/2 - 180, 390);
 }
 
 public void disableAllControls(){
+    println("disable controls");
 	stats();
 	cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
@@ -392,6 +403,7 @@ public void disableAllControls(){
 }
 
 public void changeMode(){
+    println("change mode");
     fill(255);
     textAlign(CENTER);
     textSize(30);
@@ -409,11 +421,16 @@ public void reset() {
     x_direction = -3;
     y_direction = -6;
     x_ball = width/2;
-    y_ball = width/2;
+    y_ball = height - 100;
     score = 0;
     combo = 0;
     lives = 3;
+    level = 1;
     gameOver = false;
+    for(int i = 0; i < total; i ++){
+        box[i].reset();
+    }
+
 }
  
 public void drawContent()
@@ -432,11 +449,11 @@ public void moveWithKeyboard()
 {
     if(keyPressed) {
         if(keyCode == LEFT && x_paddle > 0) {
-            x_paddle -= 5;
+            x_paddle -= 10;
         }
    
         if(keyCode == RIGHT && x_paddle < (width - 80)) {
-            x_paddle+= 5;
+            x_paddle+= 10;
         }
     }
 }
@@ -471,20 +488,20 @@ public void moveWithLeapMotion(){
 public void bounceBall()
 {
     // bounce right wall
-    if (x_ball > (width-5))
+    if (x_ball >= (width-5))
     {
         x_direction = -x_direction;
     }
    
     //bounce left wall
-    if (x_ball < 5)
+    if (x_ball <= 5)
     {
         x_direction = -x_direction;
     }
 
     //bounce on paddle top
     //if y collides and x is between paddle left and right
-    if (y_ball>(y_paddle-5) && y_ball<(y_paddle+5) && x_ball > x_paddle && x_ball<(x_paddle+85) && y_direction > 0)
+    if (y_ball>=(y_paddle-5) && y_ball<=(y_paddle+5) && x_ball >= x_paddle && x_ball<=(x_paddle+85) && y_direction > 0)
     {
         int i = x_ball - (x_paddle + 42);
         int temp = i/5;
@@ -500,13 +517,13 @@ public void bounceBall()
     }
    
     //bounce roof
-    if (y_ball < 35)
+    if (y_ball <= 35)
     {
         y_direction = -y_direction;
     }
    
     //bounce floor
-    if (y_ball > (height - 10))
+    if (y_ball >= (height - 10))
     {
         if(playMusic){
           dead.play();
