@@ -28,6 +28,14 @@ void setup()
 
     cp5.setColorBackground(color(255,255,255));
 
+    cp5.addTextfield("Name")
+     .setPosition(width/2 - 100, height/2 + 80)
+     .setSize(200,40)
+     .setFont(pong)
+     .setFocus(true)
+     .setVisible(false)
+     .setColor(color(255,0,0))
+     ;
 
     cp5.addButton("KeyboardPress")
      .setValue(0)
@@ -42,6 +50,15 @@ void setup()
      .setValue(0) 
      .setCaptionLabel("Mouse")
      .setPosition(width/2 - 100,230)
+     .setSize(200,40)
+     .setVisible(false)
+     .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
+     ;
+
+    cp5.addButton("PostHighscore")
+     .setValue(0)
+     .setCaptionLabel("Post highscore and continue")
+     .setPosition(width/2 - 100, height/2 + 120)
      .setSize(200,40)
      .setVisible(false)
      .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER)
@@ -182,14 +199,14 @@ void draw()
              	text("Game Over", width/2, height/2);
                 textSize(20);
                 text("Press mouse to continue!", width/2, height/2 + 40);
-                if(score!=0 && canPost == true){
-                  PostScore();
-                  canPost = false;
-                }
-             	if(mousePressed) {
+                
+                cp5.getController("Name").setVisible(true);
+                cp5.getController("PostHighscore").setVisible(true);
+
+             	/*if(mousePressed) {
                		reset();
-             	}
-  	        }
+             	}*/
+	    }
         }
     }
 }
@@ -206,7 +223,7 @@ void showSettings(){
 
 void showHighscore(){
 	stats();
-	cp5.getController("Settings").setVisible(false);
+    cp5.getController("Settings").setVisible(false);
     cp5.getController("Highscore").setVisible(false);
     cp5.getController("KeyboardPress").setVisible(false);
     cp5.getController("MousePress").setVisible(false);
@@ -336,6 +353,12 @@ void bounceBall()
     //if y collides and x is between paddle left and right
     if (y_ball>(y_paddle-5) && y_ball<(y_paddle+5) && x_ball > x_paddle && x_ball<(x_paddle+85) && y_direction > 0)
     {
+        int i = x_ball - (x_paddle + 42);
+        println(i);
+        int temp = i/5;
+        if(temp != 0){
+          x_direction = temp;
+        }
         y_direction = -y_direction;
         score++;
         combo++;
@@ -436,6 +459,17 @@ public void KeyboardPress(int theValue) {
     mode = 2;
 }
 
+public void PostHighscore(int theValue) {
+    if(cp5.get(Textfield.class,"Name").getText() != "" & score != 0){
+      GetRequest get = new GetRequest("http://student.howest.be/arn.vanhoutte/newmedia/post.php?name=" + cp5.get(Textfield.class,"Name").getText() + "&score=" + score);
+      get.send();
+    
+    }
+    cp5.getController("Name").setVisible(false);
+    cp5.getController("PostHighscore").setVisible(false);
+    reset();
+}
+
 public void MousePress(int theValue) {
     mode = 3;
 }
@@ -453,8 +487,4 @@ public void Highscore(int theValue) {
     mode = 4;
     println(pauze);
     json = loadJSONArray("http://student.howest.be/arn.vanhoutte/newmedia/get.php");
-}
-void PostScore(){
-    GetRequest get = new GetRequest("http://student.howest.be/arn.vanhoutte/newmedia/post.php?name=" + name + "&score=" + score);
-    get.send();
 }
