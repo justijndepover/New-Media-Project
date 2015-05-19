@@ -6,7 +6,7 @@ import controlP5.*;
 import http.requests.*;
 
 int x_ball, y_ball, x_direction, y_direction, x_paddle, y_paddle;
-boolean pauze, gameOver;
+boolean pauze, gameOver, canPost;
 int score;
 int lives, mode, combo;
 String name;
@@ -102,7 +102,7 @@ void setup()
      .setColor(0)
      ;
 
-    ControlP5.printPublicMethodsFor(ListBox.class);
+    /*ControlP5.printPublicMethodsFor(ListBox.class);
 
     l = cp5.addListBox("myList")
            .setPosition(width/2 - 100,230)
@@ -119,7 +119,7 @@ void setup()
     l.captionLabel().set("Topscores");
     l.captionLabel().style().marginTop = 3;
     l.valueLabel().style().marginTop = 3;
-
+	*/
 
     //position of paddle
     x_paddle = 60;
@@ -145,6 +145,8 @@ void setup()
     //combo streak
     combo = 0;
 
+    canPost = true;
+
     img = loadImage("images/heart.png");
     bg = loadImage("images/bg.jpg");
    
@@ -157,37 +159,32 @@ void draw()
     image(bg, 0,0, 800, 500);
 
     if (mode == 0) {
-        stats();
-        changeMode();
-    }else if (mode == 4)
-    {
-      
-            cp5.getController("Settings").setVisible(false);
-            cp5.getController("Highscore").setVisible(false);
-            l.setVisible(true);
+        showSettings();
     }
-    else{
+
+    if (mode == 4)
+    {
+        showHighscore();
+    }
+
+    if (mode == 1 || mode == 2 || mode == 3) {
 	    if (pauze) {
-	    	//toon controls
-            stats();
-            cp5.getController("Settings").setVisible(true);
-            cp5.getController("Highscore").setVisible(true);
+            showPauze();
 	    }else{
-            cp5.getController("KeyboardPress").setVisible(false);
-            cp5.getController("MousePress").setVisible(false);
-            cp5.getController("LeapPress").setVisible(false);
+            disableAllControls();
   	        if (gameOver==false) {
+  	        	canPost = true;
              	play(mode);
   	        }
   	        if (gameOver==true) {
-  	      	    stats();
                 textAlign(CENTER);
                 textSize(40);
              	text("Game Over", width/2, height/2);
                 textSize(20);
                 text("Press mouse to continue!", width/2, height/2 + 40);
-                if(score!=0){
+                if(score!=0 && canPost == true){
                   PostScore();
+                  canPost = false;
                 }
              	if(mousePressed) {
                		reset();
@@ -195,6 +192,54 @@ void draw()
   	        }
         }
     }
+}
+
+void showSettings(){
+	stats();
+	cp5.getController("Settings").setVisible(false);
+    cp5.getController("Highscore").setVisible(false);
+
+    cp5.getController("KeyboardPress").setVisible(true);
+    cp5.getController("MousePress").setVisible(true);
+    cp5.getController("LeapPress").setVisible(true);
+}
+
+void showHighscore(){
+	stats();
+	cp5.getController("Settings").setVisible(false);
+    cp5.getController("Highscore").setVisible(false);
+    cp5.getController("KeyboardPress").setVisible(false);
+    cp5.getController("MousePress").setVisible(false);
+    cp5.getController("LeapPress").setVisible(false);
+    for (int i = 0; i < json.size(); i++) {
+    
+    JSONObject item = json.getJSONObject(i); 
+
+    String name = item.getString("Name");
+    Integer score = item.getInt("Score");
+    //ListBoxItem lbi = l.addItem(name + " " + score, i);
+    textAlign(CENTER);
+    text(name + ": " + score, width/2, 100+40*i);
+  }
+}
+
+void showPauze(){
+    stats();
+    cp5.getController("Settings").setVisible(true);
+    cp5.getController("Highscore").setVisible(true);
+
+    cp5.getController("KeyboardPress").setVisible(false);
+    cp5.getController("MousePress").setVisible(false);
+    cp5.getController("LeapPress").setVisible(false);
+}
+
+void disableAllControls(){
+	stats();
+	cp5.getController("Settings").setVisible(false);
+    cp5.getController("Highscore").setVisible(false);
+    cp5.getController("KeyboardPress").setVisible(false);
+    cp5.getController("MousePress").setVisible(false);
+    cp5.getController("LeapPress").setVisible(false);
 }
 
 void changeMode(){
@@ -289,7 +334,7 @@ void bounceBall()
 
     //bounce on paddle top
     //if y collides and x is between paddle left and right
-    if (y_ball>(y_paddle-5) && x_ball > x_paddle && x_ball<(x_paddle+85))
+    if (y_ball>(y_paddle-5) && y_ball<(y_paddle+5) && x_ball > x_paddle && x_ball<(x_paddle+85) && y_direction > 0)
     {
         y_direction = -y_direction;
         score++;
@@ -408,14 +453,6 @@ public void Highscore(int theValue) {
     mode = 4;
     println(pauze);
     json = loadJSONArray("http://student.howest.be/arn.vanhoutte/newmedia/get.php");
-    for (int i = 0; i < json.size(); i++) {
-    
-    JSONObject item = json.getJSONObject(i); 
-
-    String name = item.getString("Name");
-    Integer score = item.getInt("Score");
-    ListBoxItem lbi = l.addItem(name + " " + score, i);
-  }
 }
 void PostScore(){
     GetRequest get = new GetRequest("http://student.howest.be/arn.vanhoutte/newmedia/post.php?name=" + name + "&score=" + score);
