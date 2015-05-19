@@ -61,6 +61,8 @@ void setup()
 
     cp5 = new ControlP5(this);
 
+    cp5.setAutoDraw(false);
+
     cp5.setColorBackground(color(255,255,255));
 
     cp5.addTextfield("Name")
@@ -246,12 +248,6 @@ void draw()
     	level++;
     }
     if (pauze) {
-    	PVector vingerPos = leap.getTip(leap.getFinger(0));
-    	fill(color(255, 0, 0));
-    	x_leap = (int)vingerPos.x;
-    	y_leap = (int)vingerPos.y;
-    	ellipse(x_leap, y_leap, 5, 5);
-
       cp5.getController("MusicOnOff").setVisible(true);
         if (b_showScore){
             showHighscore();
@@ -262,6 +258,14 @@ void draw()
         }else{
             showPauze();
         }
+
+        cp5.draw();
+
+        PVector vingerPos = leap.getTip(leap.getFinger(0));
+        fill(color(255, 0, 0));
+        x_leap = (int)vingerPos.x;
+        y_leap = (int)vingerPos.y;
+        ellipse(x_leap, y_leap, 5, 5);
 	}else{
     disableAllControls();
     cp5.getController("MusicOnOff").setVisible(false);
@@ -269,10 +273,10 @@ void draw()
 	     	canPost = true;
      	play(mode);
 	    }
-      	    if (gameOver==true) {
-              
-              showGameOver();
-      	    }
+      	if (gameOver==true) {     
+            showGameOver();
+      	}
+        cp5.draw();
     }
 }
 
@@ -791,5 +795,3 @@ class Brick
     b = random(128, 255);
   }
 }
-
-

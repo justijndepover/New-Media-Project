@@ -88,6 +88,8 @@ public void setup()
 
     cp5 = new ControlP5(this);
 
+    cp5.setAutoDraw(false);
+
     cp5.setColorBackground(color(255,255,255));
 
     cp5.addTextfield("Name")
@@ -273,12 +275,6 @@ public void draw()
     	level++;
     }
     if (pauze) {
-    	PVector vingerPos = leap.getTip(leap.getFinger(0));
-    	fill(color(255, 0, 0));
-    	x_leap = (int)vingerPos.x;
-    	y_leap = (int)vingerPos.y;
-    	ellipse(x_leap, y_leap, 5, 5);
-
       cp5.getController("MusicOnOff").setVisible(true);
         if (b_showScore){
             showHighscore();
@@ -289,6 +285,14 @@ public void draw()
         }else{
             showPauze();
         }
+
+        cp5.draw();
+
+        PVector vingerPos = leap.getTip(leap.getFinger(0));
+        fill(color(255, 0, 0));
+        x_leap = (int)vingerPos.x;
+        y_leap = (int)vingerPos.y;
+        ellipse(x_leap, y_leap, 5, 5);
 	}else{
     disableAllControls();
     cp5.getController("MusicOnOff").setVisible(false);
@@ -296,10 +300,10 @@ public void draw()
 	     	canPost = true;
      	play(mode);
 	    }
-      	    if (gameOver==true) {
-              
-              showGameOver();
-      	    }
+      	if (gameOver==true) {     
+            showGameOver();
+      	}
+        cp5.draw();
     }
 }
 
@@ -684,12 +688,6 @@ public void keyPressed()
         }
         pauze = !pauze;
     }
-
-        if (robot != null) {
-        robot.mouseMove(frame.getLocation().x + 400,frame.getLocation().y + 200);    
-        robot.mousePress(InputEvent.BUTTON1_MASK);
-        robot.mouseRelease(InputEvent.BUTTON1_MASK);
-    } 
 }
 
 public void screenTapGestureRecognized(ScreenTapGesture gesture){
@@ -824,8 +822,6 @@ class Brick
     b = random(128, 255);
   }
 }
-
-
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "pong" };
     if (passedArgs != null) {
