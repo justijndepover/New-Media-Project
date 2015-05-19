@@ -1,8 +1,11 @@
 <?php
+    
+    $name = $_GET["name"];
+    $score = $_GET["score"];
 
 $mysqli = new mysqli("mysqlstudent", "arnvanhoutphosa9", "liib6eex1JoK", "arnvanhoutphosa9"); 
 
-if ($result = $mysqli->query("SELECT Id, Name, Score FROM NewMedia ORDER BY Score DESC LIMIT 10")) { 
+if ($result = $mysqli->query("INSERT INTO `NewMedia`(`Name`, `Score`) VALUES ('$name','$score')")) { 
  
     $res = array(); 
     while ($row = $result->fetch_assoc()) 

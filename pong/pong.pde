@@ -420,8 +420,4 @@ public void Highscore(int theValue) {
 void PostScore(){
     GetRequest get = new GetRequest("http://student.howest.be/arn.vanhoutte/newmedia/post.php?name=" + name + "&score=" + score);
     get.send();
-          
-    
-  } catch( Exception e ) { e.printStackTrace(); }
-
 }
